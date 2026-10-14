@@ -9,7 +9,9 @@
       "type": "array",
       "editor": "stringList",
       "description": "Public http(s) URLs. Private/internal addresses are blocked. Up to 5,000 per run.",
-      "prefill": ["https://arxiv.org/pdf/1706.03762"]
+      "prefill": [
+        "https://arxiv.org/pdf/1706.03762"
+      ]
     },
     "documents": {
       "title": "Inline files (optional)",
@@ -17,14 +19,63 @@
       "editor": "json",
       "description": "Files you already have, as [{\"name\": \"report.pdf\", \"base64\": \"...\"}]."
     },
-    "chunkSize": { "title": "RAG chunk size (characters)", "type": "integer", "default": 0, "minimum": 0, "maximum": 20000, "description": "0 = no chunks. 1000–2000 is typical for embeddings. Chunks follow paragraph and sentence boundaries and keep page numbers." },
-    "chunkOverlap": { "title": "Chunk overlap (characters)", "type": "integer", "default": 150, "minimum": 0, "maximum": 5000 },
-    "maxPages": { "title": "Max pages per PDF", "type": "integer", "default": 500, "minimum": 1, "maximum": 5000 },
-    "includePageTexts": { "title": "Include page-by-page text (PDF)", "type": "boolean", "default": true },
-    "fixCjkVariants": { "title": "Fix broken CJK glyph forms", "type": "boolean", "default": true, "description": "Many PDFs encode characters as Kangxi radicals (⽇ instead of 日). This folds exactly those code points back to normal ideographs." },
-    "normalize": { "title": "Unicode NFKC normalisation", "type": "boolean", "default": false, "description": "Also turns full-width letters/digits into ASCII, half-width kana into full-width, ㈱ into (株). Useful for search; changes the text." },
-    "maxFileMb": { "title": "Max file size (MB)", "type": "integer", "default": 50, "minimum": 1, "maximum": 100 },
-    "maxChars": { "title": "Max characters per document", "type": "integer", "default": 2000000, "minimum": 1000 }
+    "chunkSize": {
+      "title": "RAG chunk size (characters)",
+      "type": "integer",
+      "default": 0,
+      "minimum": 0,
+      "maximum": 20000,
+      "description": "0 = no chunks. 1000–2000 is typical for embeddings. Chunks follow paragraph and sentence boundaries and keep page numbers."
+    },
+    "chunkOverlap": {
+      "title": "Chunk overlap (characters)",
+      "type": "integer",
+      "default": 150,
+      "minimum": 0,
+      "maximum": 5000,
+      "description": "Characters repeated at the start of the next chunk so context is not lost at boundaries (default 150)."
+    },
+    "maxPages": {
+      "title": "Max pages per PDF",
+      "type": "integer",
+      "default": 500,
+      "minimum": 1,
+      "maximum": 5000,
+      "description": "PDFs with more pages are converted up to this page and a warning is added."
+    },
+    "includePageTexts": {
+      "title": "Include page-by-page text (PDF)",
+      "type": "boolean",
+      "default": true,
+      "description": "Adds pageTexts (one plain-text string per page) to PDF results. Turn off to make rows smaller."
+    },
+    "fixCjkVariants": {
+      "title": "Fix broken CJK glyph forms",
+      "type": "boolean",
+      "default": true,
+      "description": "Many PDFs encode characters as Kangxi radicals (⽇ instead of 日). This folds exactly those code points back to normal ideographs."
+    },
+    "normalize": {
+      "title": "Unicode NFKC normalisation",
+      "type": "boolean",
+      "default": false,
+      "description": "Also turns full-width letters/digits into ASCII, half-width kana into full-width, ㈱ into (株). Useful for search; changes the text."
+    },
+    "maxFileMb": {
+      "title": "Max file size (MB)",
+      "type": "integer",
+      "default": 50,
+      "minimum": 1,
+      "maximum": 100,
+      "description": "Larger files fail with an error row (free). Maximum 100."
+    },
+    "maxChars": {
+      "title": "Max characters per document",
+      "type": "integer",
+      "default": 2000000,
+      "minimum": 1000,
+      "description": "Output is cut at this length and a warning is added."
+    }
   },
   "required": []
 }
