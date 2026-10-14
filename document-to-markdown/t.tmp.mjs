@@ -1,0 +1,12 @@
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { fetchDocument } from './src/fetchdoc.js';
+import { linesFromItems, findGutter } from './src/pdf.js';
+import { createRequire } from 'node:module'; import { dirname, join } from 'node:path'; import { pathToFileURL } from 'node:url';
+const root = dirname(createRequire(import.meta.url).resolve('pdfjs-dist/package.json'));
+const f = await fetchDocument('https://ja.wikipedia.org/api/rest_v1/page/pdf/%E5%9B%BD%E6%B0%91%E3%81%AE%E7%A5%9D%E6%97%A5');
+const doc = await pdfjs.getDocument({ data: new Uint8Array(f.bytes), cMapUrl: pathToFileURL(join(root,'cmaps')).href+'/', cMapPacked:true, verbosity:0 }).promise;
+const p = await doc.getPage(1); const tc = await p.getTextContent();
+console.log(p.view, tc.items.length);
+for (const i of tc.items.slice(0,40)) console.log(Math.round(i.transform[4]), Math.round(i.transform[5]), Math.round(i.width), Math.round(Math.hypot(i.transform[2],i.transform[3])), JSON.stringify(i.str.slice(0,40)));
+const g = tc.items.filter(i=>i.str).map(i=>({str:i.str,x:i.transform[4],y:i.transform[5],w:i.width,size:10}));
+console.log('gutter', findGutter(g, p.view[2]));
