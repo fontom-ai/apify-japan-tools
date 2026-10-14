@@ -67,7 +67,7 @@ else {
   for (const [i, query] of queries.entries()) {
     let out;
     try { out = await answer(query, asOf); } catch (e) { out = { query, found: false, error: e.message }; }
-    const r = await Actor.pushData(out, out.found ? 'result' : undefined);       // misses and errors are free
+    const r = await Actor.pushData(out);   // priced as apify-default-dataset-item: every row written is charged, misses included
     if (r?.eventChargeLimitReached) { console.warn(`Spending limit reached after ${i + 1} queries; stopping.`); break; }
   }
 }

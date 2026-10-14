@@ -2,7 +2,7 @@
   "title": "Japanese Law Article Text",
   "type": "object",
   "schemaVersion": 1,
-  "description": "Law name + article number per query. A query with only a law name returns the article list. Misses and errors are free.",
+  "description": "Law name + article number per query. A query with only a law name returns the article list. Every result row is charged, including not-found rows.",
   "properties": {
     "queries": {
       "title": "Queries",

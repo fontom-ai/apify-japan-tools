@@ -4,7 +4,7 @@
 
 * **Point-in-time versions.** Set `asOf` to a date and get the text that was in force then (e.g. 民法第4条 on 2019-01-01 says 二十歳; today it says 十八歳).
 * **Flexible queries.** Kanji or Arabic numerals, branch articles (`第90条の2`), paragraphs (`第415条第2項`), official abbreviations (`個人情報保護法`). A query with only a law name returns the list of articles.
-* **Honest misses.** Ambiguous law names return candidates instead of a guess; missing articles say so.
+* **Honest misses.** Ambiguous law names return candidates instead of a guess; missing articles say so (a miss is a result row and is charged like any other).
 * **For AI agents.** Available through the Apify MCP server, so an agent can fetch the real wording before answering a legal-text question instead of hallucinating it.
 
 ## Input
@@ -24,7 +24,7 @@
 
 ## Pricing
 
-Pay per event: one `result` event per found query. Misses and errors are free.
+Pay per event: $0.01 per result row written to the dataset (`apify-default-dataset-item`). **Every row is charged, including not-found rows**, so check names before bulk runs (ambiguous names return candidates, also one row).
 
 ## Limits
 
