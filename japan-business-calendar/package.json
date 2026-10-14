@@ -1,0 +1,10 @@
+{
+  "name": "japan-business-calendar",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Japanese business days, holidays, wareki and fiscal year for Apify.",
+  "scripts": { "start": "node src/main.js", "test": "node --test test/*.test.js" },
+  "dependencies": { "apify": "^3.2.0" },
+  "license": "MIT"
+}

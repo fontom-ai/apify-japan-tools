@@ -1,0 +1,10 @@
+{
+  "name": "japan-postal-address",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Japanese postal code lookup and address normalisation for Apify.",
+  "scripts": { "start": "node src/main.js", "test": "node --test test/*.test.js" },
+  "dependencies": { "apify": "^3.2.0", "fflate": "^0.8.2" },
+  "license": "MIT"
+}

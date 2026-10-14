@@ -1,0 +1,25 @@
+{
+  "title": "Japan Postal Code & Address Normalizer",
+  "type": "object",
+  "schemaVersion": 1,
+  "description": "Give postal codes (7 digits) and/or addresses; each item returns one result row (and one charge). Input errors are free.",
+  "properties": {
+    "items": {
+      "title": "Postal codes or addresses",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Postal codes (100-0001, 〒1000001, １００−０００１) and/or addresses (東京都千代田区飯田橋1-2-3). Up to 100,000 items per run.",
+      "prefill": ["100-0001", "東京都千代田区飯田橋1-2-3", "北海道札幌市中央区大通西二十丁目", "〒6008216"]
+    },
+    "mode": {
+      "title": "Mode",
+      "type": "string",
+      "editor": "select",
+      "default": "auto",
+      "enum": ["auto", "zip", "address", "normalize"],
+      "enumTitles": ["Auto (7 digits = postal code, otherwise address)", "Postal code → address", "Address → postal code", "Address → normalized parts only"],
+      "description": "Auto picks per item. 'address' returns the postal code with a confidence level: town (exact town and block range), city (only the city's general code), ambiguous (several codes, candidates listed), none."
+    }
+  },
+  "required": ["items"]
+}

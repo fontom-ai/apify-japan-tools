@@ -1,0 +1,23 @@
+{
+  "title": "Japanese Law Article Text",
+  "type": "object",
+  "schemaVersion": 1,
+  "description": "Law name + article number per query. A query with only a law name returns the article list. Misses and errors are free.",
+  "properties": {
+    "queries": {
+      "title": "Queries",
+      "type": "array",
+      "editor": "stringList",
+      "description": "e.g. 民法第709条, 民法第90条の2第1項, 個人情報保護法第27条, 会社法. Kanji or Arabic numerals both work; official abbreviations (個人情報保護法) are resolved.",
+      "prefill": ["民法第709条", "民法第415条第2項", "個人情報保護法第27条", "労働基準法第36条"]
+    },
+    "asOf": {
+      "title": "As of date (optional)",
+      "type": "string",
+      "editor": "textfield",
+      "description": "YYYY-MM-DD. Returns the version of the law that was in force on that date (point-in-time). Leave empty for the current version.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    }
+  },
+  "required": ["queries"]
+}

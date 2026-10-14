@@ -1,0 +1,22 @@
+{
+  "actorSpecification": 1,
+  "name": "japan-business-calendar",
+  "title": "Japan Business Day & Holiday Calculator (営業日・祝日・和暦)",
+  "description": "Business days, Japanese national holidays (Cabinet Office official list), wareki ⇄ Gregorian and fiscal year. Deterministic, no scraping.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "dockerfile": "../Dockerfile",
+  "input": "./input_schema.json",
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "views": {
+        "results": {
+          "title": "Results",
+          "transformation": { "fields": ["ok", "task", "date", "weekday", "isBusinessDay", "closedReason", "holiday", "wareki", "result", "businessDays", "year", "source", "holidays", "error"] },
+          "display": { "component": "table", "properties": { "ok": { "label": "OK" }, "task": { "label": "Task" }, "date": { "label": "Date" }, "isBusinessDay": { "label": "Business day" }, "closedReason": { "label": "Closed because" }, "error": { "label": "Error" } } }
+        }
+      }
+    }
+  }
+}

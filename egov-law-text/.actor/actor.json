@@ -1,0 +1,22 @@
+{
+  "actorSpecification": 1,
+  "name": "egov-law-text",
+  "title": "Japanese Law Article Text (e-Gov 法令・条文取得)",
+  "description": "Exact article text of Japanese statutes by name and article number (民法第709条 …), with the point-in-time version option. Straight from the e-Gov Law API; ideal for AI agents that must quote the law, not recall it.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "dockerfile": "../Dockerfile",
+  "input": "./input_schema.json",
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "views": {
+        "results": {
+          "title": "Results",
+          "transformation": { "fields": ["query", "found", "law", "article", "articles", "asOf", "error", "candidates", "notice"] },
+          "display": { "component": "table", "properties": { "query": { "label": "Query" }, "found": { "label": "Found" }, "law": { "label": "Law" }, "article": { "label": "Article" }, "error": { "label": "Error" } } }
+        }
+      }
+    }
+  }
+}

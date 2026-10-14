@@ -1,0 +1,22 @@
+{
+  "actorSpecification": 1,
+  "name": "japan-postal-address",
+  "title": "Japan Postal Code & Address Normalizer (郵便番号・住所)",
+  "description": "Postal code ⇄ address lookup and address normalisation for Japan, from Japan Post's official data (refreshed on every run). Bulk, deterministic, no scraping.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "dockerfile": "../Dockerfile",
+  "input": "./input_schema.json",
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "views": {
+        "results": {
+          "title": "Results",
+          "transformation": { "fields": ["input", "mode", "zip", "found", "confidence", "prefecture", "city", "town", "block", "normalized", "candidates", "error"] },
+          "display": { "component": "table", "properties": { "input": { "label": "Input" }, "zip": { "label": "Postal code" }, "found": { "label": "Found" }, "confidence": { "label": "Confidence" }, "prefecture": { "label": "Prefecture" }, "city": { "label": "City" }, "town": { "label": "Town" }, "block": { "label": "Rest" }, "error": { "label": "Error" } } }
+        }
+      }
+    }
+  }
+}
