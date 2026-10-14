@@ -13,10 +13,50 @@
       "views": {
         "results": {
           "title": "Results",
-          "transformation": { "fields": ["ok", "task", "date", "weekday", "isBusinessDay", "closedReason", "holiday", "wareki", "result", "businessDays", "year", "source", "holidays", "error"] },
-          "display": { "component": "table", "properties": { "ok": { "label": "OK" }, "task": { "label": "Task" }, "date": { "label": "Date" }, "isBusinessDay": { "label": "Business day" }, "closedReason": { "label": "Closed because" }, "error": { "label": "Error" } } }
+          "transformation": {
+            "fields": [
+              "ok",
+              "task",
+              "date",
+              "weekday",
+              "isBusinessDay",
+              "closedReason",
+              "holiday",
+              "wareki",
+              "result",
+              "businessDays",
+              "year",
+              "source",
+              "holidays",
+              "error"
+            ]
+          },
+          "display": {
+            "component": "table",
+            "properties": {
+              "ok": {
+                "label": "OK"
+              },
+              "task": {
+                "label": "Task"
+              },
+              "date": {
+                "label": "Date"
+              },
+              "isBusinessDay": {
+                "label": "Business day"
+              },
+              "closedReason": {
+                "label": "Closed because"
+              },
+              "error": {
+                "label": "Error"
+              }
+            }
+          }
         }
       }
     }
-  }
+  },
+  "output": "./output_schema.json"
 }

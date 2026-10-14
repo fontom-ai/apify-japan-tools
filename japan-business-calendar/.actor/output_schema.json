@@ -1,0 +1,13 @@
+{
+  "actorOutputSchemaVersion": 1,
+  "title": "Output",
+  "description": "One result row per input item.",
+  "properties": {
+    "results": {
+      "type": "string",
+      "title": "Results",
+      "description": "Result rows in the default dataset.",
+      "template": "{{links.apiDefaultDatasetItemsUrl}}"
+    }
+  }
+}

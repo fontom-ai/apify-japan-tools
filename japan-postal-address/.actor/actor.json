@@ -13,10 +13,57 @@
       "views": {
         "results": {
           "title": "Results",
-          "transformation": { "fields": ["input", "mode", "zip", "found", "confidence", "prefecture", "city", "town", "block", "normalized", "candidates", "error"] },
-          "display": { "component": "table", "properties": { "input": { "label": "Input" }, "zip": { "label": "Postal code" }, "found": { "label": "Found" }, "confidence": { "label": "Confidence" }, "prefecture": { "label": "Prefecture" }, "city": { "label": "City" }, "town": { "label": "Town" }, "block": { "label": "Rest" }, "error": { "label": "Error" } } }
+          "transformation": {
+            "fields": [
+              "input",
+              "mode",
+              "zip",
+              "found",
+              "confidence",
+              "prefecture",
+              "city",
+              "town",
+              "block",
+              "normalized",
+              "candidates",
+              "error"
+            ]
+          },
+          "display": {
+            "component": "table",
+            "properties": {
+              "input": {
+                "label": "Input"
+              },
+              "zip": {
+                "label": "Postal code"
+              },
+              "found": {
+                "label": "Found"
+              },
+              "confidence": {
+                "label": "Confidence"
+              },
+              "prefecture": {
+                "label": "Prefecture"
+              },
+              "city": {
+                "label": "City"
+              },
+              "town": {
+                "label": "Town"
+              },
+              "block": {
+                "label": "Rest"
+              },
+              "error": {
+                "label": "Error"
+              }
+            }
+          }
         }
       }
     }
-  }
+  },
+  "output": "./output_schema.json"
 }

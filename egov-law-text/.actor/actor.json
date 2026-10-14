@@ -13,10 +13,42 @@
       "views": {
         "results": {
           "title": "Results",
-          "transformation": { "fields": ["query", "found", "law", "article", "articles", "asOf", "error", "candidates", "notice"] },
-          "display": { "component": "table", "properties": { "query": { "label": "Query" }, "found": { "label": "Found" }, "law": { "label": "Law" }, "article": { "label": "Article" }, "error": { "label": "Error" } } }
+          "transformation": {
+            "fields": [
+              "query",
+              "found",
+              "law",
+              "article",
+              "articles",
+              "asOf",
+              "error",
+              "candidates",
+              "notice"
+            ]
+          },
+          "display": {
+            "component": "table",
+            "properties": {
+              "query": {
+                "label": "Query"
+              },
+              "found": {
+                "label": "Found"
+              },
+              "law": {
+                "label": "Law"
+              },
+              "article": {
+                "label": "Article"
+              },
+              "error": {
+                "label": "Error"
+              }
+            }
+          }
         }
       }
     }
-  }
+  },
+  "output": "./output_schema.json"
 }
