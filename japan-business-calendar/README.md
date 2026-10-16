@@ -1,5 +1,7 @@
 # Japan Business Day & Holiday Calculator (営業日・祝日・和暦)
 
+**Run it on Apify Store:** https://apify.com/fontom.ai.plus/japan-business-calendar
+
 Answers the date questions every Japan-facing workflow keeps getting wrong: **is this a business day, what is the 5th business day after X, how many business days are in this period, what is this date in 和暦, which fiscal year/quarter is it.**
 
 * **Official data.** Holidays come from the Cabinet Office's national holiday list (内閣府「国民の祝日」, 1955–), fetched on every run, so a new year appears without any update from me. For years the official list does not cover yet, holidays are computed from the statute (verified identical to the official list for every year 2000–2027).

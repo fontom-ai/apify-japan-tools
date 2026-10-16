@@ -1,5 +1,7 @@
 # AI Image Upscaler 2x / 4x — Real-ESRGAN on CPU, no GPU, pay per image
 
+**Run it on Apify Store:** https://apify.com/fontom.ai.plus/ai-image-upscaler
+
 Make small, blurry or compressed images bigger and cleaner. Give a list of image URLs, get back **2x or 4x upscaled files** (PNG, JPG or WebP) as links. Runs the open-source **Real-ESRGAN (general x4v3)** model on CPU inside the Actor: **no GPU, no subscription, no API key, no third-party service.**
 
 ## Good for

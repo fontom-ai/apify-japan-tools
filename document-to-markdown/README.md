@@ -1,5 +1,7 @@
 # Document to Markdown & RAG Chunks — PDF, Word, Excel, PowerPoint, HTML (CJK-ready)
 
+**Run it on Apify Store:** https://apify.com/fontom.ai.plus/document-to-markdown
+
 Turn documents into **clean Markdown, plain text and RAG-ready chunks** for LLM agents, search indexes and data pipelines. Pure code running inside the Actor: **no OCR service, no AI guessing, no third-party API, no API keys.**
 
 ## What makes the output good

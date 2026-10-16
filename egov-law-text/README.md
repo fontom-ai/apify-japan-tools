@@ -1,5 +1,7 @@
 # Japanese Law Article Text (e-Gov 法令・条文取得)
 
+**Run it on Apify Store:** https://apify.com/fontom.ai.plus/egov-law-text
+
 **Quote the law, don't recall it.** Give a law name and an article number (`民法第709条`, `個人情報保護法第27条`, `労働基準法第36条`) and get the **exact current article text** from the government's e-Gov Law API, with the law's number, enforcement date and a link to the official page.
 
 * **Point-in-time versions.** Set `asOf` to a date and get the text that was in force then (e.g. 民法第4条 on 2019-01-01 says 二十歳; today it says 十八歳).

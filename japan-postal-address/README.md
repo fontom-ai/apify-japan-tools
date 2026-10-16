@@ -1,5 +1,7 @@
 # Japan Postal Code & Address Normalizer (郵便番号・住所)
 
+**Run it on Apify Store:** https://apify.com/fontom.ai.plus/japan-postal-address
+
 Bulk **postal code → address**, **address → postal code** and **address normalisation** for Japan, built on Japan Post's official `KEN_ALL` data (124,000+ rows), **downloaded fresh on every run** (a bundled snapshot is the fallback if their site is unreachable).
 
 * Handles `〒１００−０００１`, `100 0001`, full-width digits, kanji numerals (`大通西二十丁目`), `ー` used as a hyphen, `大字` prefixes, omitted prefectures, `ヶ/ケ` variants.
