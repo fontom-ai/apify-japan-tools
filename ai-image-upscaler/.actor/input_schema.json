@@ -21,12 +21,12 @@
     },
     "scale": {
       "title": "Scale",
-      "type": "integer",
+      "type": "string",
       "editor": "select",
-      "default": 4,
+      "default": "4",
       "enum": [
-        2,
-        4
+        "2",
+        "4"
       ],
       "enumTitles": [
         "2x (4x model, then reduced: crisper)",
