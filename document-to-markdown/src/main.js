@@ -42,7 +42,7 @@ else {
       const i = next++;
       if (i >= sources.length) return;
       const out = await processOne(sources[i], opts);
-      const r = await Actor.pushData(out, out.ok ? 'result' : undefined);       // failures are free
+      const r = await Actor.pushData(out);   // priced as apify-default-dataset-item: every row written is charged, failures included
       done++; if (out.ok) charged++;
       if (r?.eventChargeLimitReached) { stop = true; console.warn(`Spending limit reached after ${done} documents; stopping.`); }
     }

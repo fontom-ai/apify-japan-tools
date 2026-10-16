@@ -2,7 +2,7 @@
   "title": "Document to Markdown",
   "type": "object",
   "schemaVersion": 1,
-  "description": "Give document URLs (PDF, DOCX, XLSX, PPTX, HTML, CSV, TXT, MD). Each successfully converted document is one result; failed documents return an error row and are free.",
+  "description": "Give document URLs (PDF, DOCX, XLSX, PPTX, HTML, CSV, TXT, MD). Each document produces one result row; failed documents return an error row (also charged as a row, see the pricing shown on the Actor page).",
   "properties": {
     "urls": {
       "title": "Document URLs",
