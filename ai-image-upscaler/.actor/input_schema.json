@@ -10,7 +10,7 @@
       "editor": "stringList",
       "description": "Public http(s) image URLs, up to 500 per run. Private/internal addresses are blocked.",
       "prefill": [
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png"
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/36/Hopetoun_falls.jpg/330px-Hopetoun_falls.jpg"
       ]
     },
     "images": {
