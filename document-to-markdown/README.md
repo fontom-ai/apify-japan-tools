@@ -36,7 +36,7 @@ Turn documents into **clean Markdown, plain text and RAG-ready chunks** for LLM 
 
 ## Pricing
 
-Pay per event, as shown on the Actor page: a **start fee per run** plus **one charge per result row** (Apify's dataset-item event). **Every row is charged, including rows for documents that failed to convert** (404, blocked address, unsupported type, too large), so check URLs before big batches. One run can hold up to 5,000 documents, which is the cheapest way to use it (the start fee is paid once).
+Pay per event, as shown on the Actor page: a tiny **start fee per run** ($0.00005) plus **one charge per result row** ($0.01) (Apify's dataset-item event). **Every row is charged, including rows for documents that failed to convert** (404, blocked address, unsupported type, too large), so check URLs before big batches. One run can hold up to 5,000 documents.
 
 ## Limits, stated plainly
 
