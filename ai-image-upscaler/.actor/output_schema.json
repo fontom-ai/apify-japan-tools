@@ -1,0 +1,8 @@
+{
+  "actorOutputSchemaVersion": 1,
+  "title": "Output",
+  "description": "One row per document.",
+  "properties": {
+    "results": { "type": "string", "title": "Results", "description": "Converted documents in the default dataset.", "template": "{{links.apiDefaultDatasetItemsUrl}}" }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "ai-image-upscaler",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Real-ESRGAN image upscaling on CPU for Apify: 2x/4x, no GPU, pay per image.",
+  "scripts": { "start": "node src/main.js", "test": "node --test test/*.test.js" },
+  "dependencies": { "apify": "^3.2.0", "onnxruntime-node": "^1.20.0", "sharp": "^0.33.5" },
+  "license": "MIT"
+}

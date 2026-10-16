@@ -1,0 +1,67 @@
+{
+  "title": "AI Image Upscaler",
+  "type": "object",
+  "schemaVersion": 1,
+  "description": "Give image URLs (JPG, PNG, WebP, ...). Each upscaled image is stored and returned as a link; each success is one result. Failed images return an error row and are free.",
+  "properties": {
+    "urls": {
+      "title": "Image URLs",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Public http(s) image URLs, up to 500 per run. Private/internal addresses are blocked.",
+      "prefill": [
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png"
+      ]
+    },
+    "images": {
+      "title": "Inline images (optional)",
+      "type": "array",
+      "editor": "json",
+      "description": "Images you already have, as [{\"name\": \"photo.jpg\", \"base64\": \"...\"}]."
+    },
+    "scale": {
+      "title": "Scale",
+      "type": "integer",
+      "editor": "select",
+      "default": 4,
+      "enum": [
+        2,
+        4
+      ],
+      "enumTitles": [
+        "2x (4x model, then reduced: crisper)",
+        "4x"
+      ],
+      "description": "Output size relative to the input. 2x runs the 4x model and reduces the result, which usually looks cleaner than a plain enlargement."
+    },
+    "outputFormat": {
+      "title": "Output format",
+      "type": "string",
+      "editor": "select",
+      "default": "png",
+      "enum": [
+        "png",
+        "jpg",
+        "webp"
+      ],
+      "description": "PNG is lossless. Images with transparency are always written as PNG when JPG is chosen."
+    },
+    "quality": {
+      "title": "JPG/WebP quality",
+      "type": "integer",
+      "default": 92,
+      "minimum": 40,
+      "maximum": 100,
+      "description": "Used for JPG and WebP output only."
+    },
+    "maxInputMegapixels": {
+      "title": "Max input size (megapixels)",
+      "type": "number",
+      "default": 4,
+      "minimum": 0.1,
+      "maximum": 8,
+      "description": "Larger inputs are reduced to this size before upscaling, which keeps run time and memory bounded (4 MP is about 2000x2000 pixels). At 4x the output has 16 times as many pixels."
+    }
+  },
+  "required": []
+}

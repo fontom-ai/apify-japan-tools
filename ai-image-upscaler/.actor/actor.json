@@ -1,0 +1,65 @@
+{
+  "actorSpecification": 1,
+  "name": "ai-image-upscaler",
+  "title": "AI Image Upscaler 2x/4x (Real-ESRGAN, no GPU)",
+  "description": "Upscale and sharpen low-resolution photos, product images, screenshots and art 2x or 4x with Real-ESRGAN. Bulk URLs, PNG/JPG/WebP, transparency kept. Pay per image, no GPU, no subscription.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "dockerfile": "../Dockerfile",
+  "input": "./input_schema.json",
+  "output": "./output_schema.json",
+  "defaultRunOptions": {
+    "build": "latest",
+    "timeoutSecs": 900,
+    "memoryMbytes": 4096
+  },
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "views": {
+        "results": {
+          "title": "Results",
+          "transformation": {
+            "fields": [
+              "ok",
+              "source",
+              "outputUrl",
+              "inputWidth",
+              "inputHeight",
+              "outputWidth",
+              "outputHeight",
+              "format",
+              "seconds",
+              "warnings",
+              "error"
+            ]
+          },
+          "display": {
+            "component": "table",
+            "properties": {
+              "ok": {
+                "label": "OK"
+              },
+              "source": {
+                "label": "Source"
+              },
+              "outputUrl": {
+                "label": "Upscaled image",
+                "format": "link"
+              },
+              "outputWidth": {
+                "label": "Out W"
+              },
+              "outputHeight": {
+                "label": "Out H"
+              },
+              "error": {
+                "label": "Error"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
