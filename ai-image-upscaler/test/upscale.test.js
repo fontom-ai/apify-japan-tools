@@ -68,3 +68,11 @@ test('EXIF orientation is honoured', async () => {
 test('garbage input gives a readable error', async () => {
   await assert.rejects(() => upscaleOne(model, Buffer.from('not an image'), O));
 });
+
+test('thread count follows the Actor memory (about 1 vCPU per 4 GB)', async () => {
+  const { cpuThreads } = await import('../src/model.js');
+  assert.equal(cpuThreads({ ACTOR_MEMORY_MBYTES: '1024' }, 12), 1);
+  assert.equal(cpuThreads({ ACTOR_MEMORY_MBYTES: '4096' }, 12), 1);
+  assert.equal(cpuThreads({ ACTOR_MEMORY_MBYTES: '8192' }, 12), 2);
+  assert.equal(cpuThreads({}, 12), 12);
+});

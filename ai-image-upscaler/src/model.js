@@ -3,12 +3,18 @@ import * as ort from 'onnxruntime-node';
 import { existsSync } from 'node:fs';
 import { cpus } from 'node:os';
 
+/** Apify gives about 1 vCPU per 4 GB of Actor memory; more threads than that only fight for the quota (a 1 GB run was ~100x slower). */
+export function cpuThreads(env = process.env, hostCpus = cpus().length) {
+  const mem = Number(env.ACTOR_MEMORY_MBYTES);
+  return Number.isFinite(mem) && mem > 0 ? Math.max(1, Math.round(mem / 4096)) : Math.max(1, hostCpus);
+}
+
 export const MODEL_PATH = new URL('../models/real_esrgan_general_x4v3.onnx', import.meta.url);
 
 export async function loadModel(path = MODEL_PATH) {
   if (!existsSync(path)) throw new Error('Model file missing: models/real_esrgan_general_x4v3.onnx');
   const session = await ort.InferenceSession.create(path.pathname ? decodeURIComponent(path.pathname) : path, {
-    executionProviders: ['cpu'], graphOptimizationLevel: 'all', intraOpNumThreads: Math.max(1, cpus().length),
+    executionProviders: ['cpu'], graphOptimizationLevel: 'all', intraOpNumThreads: cpuThreads(), interOpNumThreads: 1,
   });
   const inName = session.inputNames[0], outName = session.outputNames[0];
   const dims = session.inputMetadata?.[0]?.shape ?? session.inputMetadata?.[inName]?.shape;     // e.g. [1,3,128,128] or dynamic
