@@ -30,7 +30,7 @@ const docs = Array.isArray(input.documents) ? input.documents.filter((d) => d &&
 const sources = [...urls, ...docs];
 const opts = {
   chunkSize: Number(input.chunkSize ?? 0) || 0, chunkOverlap: Number(input.chunkOverlap ?? 150), maxPages: Number(input.maxPages ?? 500),
-  includePageTexts: input.includePageTexts !== false, normalize: input.normalize === true, fixCjkVariants: input.fixCjkVariants !== false,
+  includePageTexts: input.includePageTexts !== false, detectTables: input.detectTables !== false, normalize: input.normalize === true, fixCjkVariants: input.fixCjkVariants !== false,
   maxChars: Number(input.maxChars ?? 2000000), maxBytes: Math.min(Number(input.maxFileMb ?? 50), 100) * 1024 * 1024,
 };
 if (!sources.length) await Actor.fail('Provide at least one document URL in "urls" (or base64 files in "documents").');

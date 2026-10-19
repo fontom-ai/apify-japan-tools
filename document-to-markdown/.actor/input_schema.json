@@ -49,6 +49,12 @@
       "default": true,
       "description": "Adds pageTexts (one plain-text string per page) to PDF results. Turn off to make rows smaller."
     },
+    "detectTables": {
+      "title": "Detect tables in PDFs",
+      "type": "boolean",
+      "default": true,
+      "description": "Turn aligned text in PDFs into Markdown tables. Switch off to get plain text lines instead (useful if a layout is mistaken for a table)."
+    },
     "fixCjkVariants": {
       "title": "Fix broken CJK glyph forms",
       "type": "boolean",

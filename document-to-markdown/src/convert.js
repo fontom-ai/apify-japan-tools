@@ -1,7 +1,7 @@
 import { unzipSync } from 'fflate';
 import { convertPdf } from './pdf.js';
 import { convertDocx, convertXlsx, convertPptx, convertHtml, convertText } from './office.js';
-import { chunkBlocks, detectScript, fixCjkVariants, normalizeText } from './text.js';
+import { chunkBlocks, decodeText, detectScript, fixCjkVariants, normalizeText } from './text.js';
 
 /** Detect the file type from magic bytes first, then content-type / extension. */
 export function detectType(bytes, { contentType = '', name = '' } = {}) {
@@ -43,13 +43,13 @@ export async function convertBytes(bytes, opts = {}) {
   const type = detectType(bytes, opts);
   let r;
   switch (type) {
-    case 'pdf': r = await convertPdf(bytes, { maxPages: opts.maxPages ?? 500 }); break;
+    case 'pdf': r = await convertPdf(bytes, { maxPages: opts.maxPages ?? 500, detectTables: opts.detectTables !== false }); break;
     case 'docx': r = await convertDocx(bytes); break;
     case 'xlsx': r = await convertXlsx(bytes); break;
     case 'pptx': r = convertPptx(bytes); break;
-    case 'html': r = convertHtml(Buffer.from(bytes).toString('utf8')); break;
-    case 'csv': { const t = Buffer.from(bytes).toString('utf8'); r = convertText(t, 'csv'); r.markdown = csvToMarkdown(t); break; }
-    case 'md': case 'txt': r = convertText(Buffer.from(bytes).toString('utf8'), type); break;
+    case 'html': { const d = decodeText(bytes, opts.contentType); r = convertHtml(d.text); r.encoding = d.encoding; break; }
+    case 'csv': { const d = decodeText(bytes, opts.contentType); r = convertText(d.text, 'csv'); r.markdown = csvToMarkdown(d.text); r.encoding = d.encoding; break; }
+    case 'md': case 'txt': { const d = decodeText(bytes, opts.contentType); r = convertText(d.text, type); r.encoding = d.encoding; break; }
     case 'legacy-office': throw new Error('Legacy .doc/.xls/.ppt files are not supported. Save them as .docx/.xlsx/.pptx first.');
     default: throw new Error('Unsupported or unrecognised file type (supported: PDF, DOCX, XLSX, PPTX, HTML, CSV, TXT, MD).');
   }
@@ -63,6 +63,10 @@ export async function convertBytes(bytes, opts = {}) {
     chars: markdown.length, markdown, text, warnings: r.warnings,
   };
   if (r.sheets) out.sheets = r.sheets;
+  if (r.tables !== undefined) out.tables = r.tables;
+  if (r.encoding && r.encoding !== 'utf-8') out.encoding = r.encoding;
+  if (r.scanned) out.scanned = true;
+  if (r.emptyPages?.length) out.emptyPages = r.emptyPages;
   if (opts.includePageTexts !== false && r.pageTexts) out.pageTexts = r.pageTexts.map(fix);
   if (opts.chunkSize) out.chunks = chunkBlocks(r.blocks.map((b) => ({ ...b, text: fix(b.text) })), opts.chunkSize, opts.chunkOverlap ?? 150);
   return out;

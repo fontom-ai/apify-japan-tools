@@ -3,7 +3,7 @@
   "name": "document-to-markdown",
   "title": "Document to Markdown & RAG Chunks (PDF, Word, Excel, CJK)",
   "description": "Turn PDF, DOCX, XLSX, PPTX, HTML and CSV files into clean Markdown, plain text and RAG-ready chunks. Two-column PDFs, Japanese/Chinese/Korean text and tables handled. No OCR, no AI guessing, no third-party API.",
-  "version": "0.1",
+  "version": "0.2",
   "buildTag": "latest",
   "dockerfile": "../Dockerfile",
   "input": "./input_schema.json",
@@ -22,9 +22,12 @@
               "title",
               "pages",
               "script",
+              "tables",
               "chars",
               "markdown",
               "chunks",
+              "scanned",
+              "encoding",
               "warnings",
               "error"
             ]
@@ -55,6 +58,9 @@
               },
               "error": {
                 "label": "Error"
+              },
+              "tables": {
+                "label": "Tables"
               }
             }
           }

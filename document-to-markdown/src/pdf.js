@@ -10,6 +10,7 @@ const root = dirname(require.resolve('pdfjs-dist/package.json'));
 const CMAP_URL = pathToFileURL(join(root, 'cmaps')).href + '/';
 const FONT_URL = pathToFileURL(join(root, 'standard_fonts')).href + '/';
 
+const CELL_GAP = 1.2;   // em: an empty strip this wide inside a row starts a new table cell
 const BULLET = /^[•・◦▪●○■□◆◇‣∙·*\-–—]\s*/;
 const median = (a) => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
 
@@ -68,17 +69,32 @@ function rowsToLines(glyphs) {
   }
   return rows.sort((a, b) => b.y - a.y).map((r) => {
     r.g.sort((a, b) => a.x - b.x);
-    let text = '', prevEnd = null;
+    let text = '', prevEnd = null, prevInk = null;
+    const cells = [];
+    let cell = null;
     for (const g of r.g) {
+      const gap = prevEnd === null ? 0 : g.x - prevEnd;
       if (prevEnd !== null) {
-        const gap = g.x - prevEnd;
         const cjkEdge = /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]$/.test(text) || /^[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/.test(g.str);
         if (gap > r.size * (cjkEdge ? 0.9 : 0.18) && !text.endsWith(' ') && !g.str.startsWith(' ')) text += ' ';
       }
+      // Cells: a wide empty strip between two inked items starts a new cell. Whitespace-only items (some PDFs emit one
+      // very wide space between columns) must not hide the strip, so the gap is measured between inked items only.
+      const ink = g.str.trim() !== '';
+      if (ink) {
+        const inkGap = prevInk === null ? 0 : g.x - prevInk;
+        if (cell && inkGap > r.size * CELL_GAP) { cells.push(cell); cell = null; }
+        if (!cell) cell = { x0: g.x, x1: g.x + g.w, text: '' };
+        else if (g.x - prevEnd > r.size * 0.18 && !cell.text.endsWith(' ') && !g.str.startsWith(' ')) cell.text += ' ';
+        cell.x1 = g.x + g.w;
+        prevInk = g.x + g.w;
+      }
+      if (cell) cell.text += g.str;
       text += g.str;
       prevEnd = g.x + g.w;
     }
-    return { y: r.y, size: r.size, text: text.replace(/\s+$/g, ''), x0: r.g[0].x };
+    if (cell) cells.push(cell);
+    return { y: r.y, size: r.size, text: text.replace(/\s+$/g, ''), x0: r.g[0].x, cells: cells.map((c) => ({ ...c, text: c.text.trim() })).filter((c) => c.text) };
   }).filter((l) => l.text.trim());
 }
 
@@ -106,8 +122,127 @@ export function linesFromItems(items, pageWidth = 0) {
   return out;
 }
 
+
+const cellMd = (t) => String(t ?? '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
+
+/**
+ * Column ranges of a run of table rows, found as vertical strips that (almost) no row crosses.
+ * Returns [{x0, x1}, ...] or null when the rows do not form >= 2 columns.
+ */
+function columnRanges(rows, size) {
+  const x0 = Math.floor(Math.min(...rows.flatMap((r) => r.cells.map((c) => c.x0))));
+  const x1 = Math.ceil(Math.max(...rows.flatMap((r) => r.cells.map((c) => c.x1))));
+  const bins = new Uint16Array(x1 - x0 + 2);
+  for (const r of rows) {
+    const covered = new Set();
+    for (const c of r.cells) for (let x = Math.floor(c.x0) - x0; x <= Math.ceil(c.x1) - x0; x++) covered.add(x);
+    for (const x of covered) bins[x]++;
+  }
+  const tolerance = Math.floor(rows.length * 0.12);
+  const minGap = Math.max(5, size * 0.8);
+  const cols = [];
+  let start = null, lastOcc = null;
+  for (let x = 0; x < bins.length; x++) {
+    if (bins[x] > tolerance) {
+      if (start === null) start = x;
+      else if (x - lastOcc > minGap) { cols.push({ x0: start + x0, x1: lastOcc + x0 }); start = x; }
+      lastOcc = x;
+    }
+  }
+  if (start !== null) cols.push({ x0: start + x0, x1: lastOcc + x0 });
+  return cols.length >= 2 ? cols : null;
+}
+
+const colOf = (cols, c) => {
+  const mid = (c.x0 + c.x1) / 2;
+  let best = 0, bestD = Infinity;
+  cols.forEach((col, i) => { const d = mid < col.x0 ? col.x0 - mid : mid > col.x1 ? mid - col.x1 : 0; if (d < bestD) { bestD = d; best = i; } });
+  return best;
+};
+
+/** Try to read lines[start..] as a table. Returns {end, rows, cols} (end exclusive) or null. */
+function tableAt(lines, start) {
+  const run = [lines[start]];
+  let i = start + 1;
+  while (i < lines.length) {
+    const l = lines[i], prev = lines[i - 1];
+    const gap = prev.y - l.y;
+    const size = Math.max(prev.size, l.size);
+    if (gap > size * 3) break;
+    if (l.cells.length >= 2) run.push(l);
+    else if (l.cells.length === 1 && gap <= size * 1.7 && l.x0 >= Math.min(...run.map((r) => r.x0)) - 2) run.push(l);   // wrapped cell text
+    else break;
+    i++;
+  }
+  while (run.length && run[run.length - 1].cells.length < 2) run.pop();
+  const tab = run.filter((r) => r.cells.length >= 2);
+  if (tab.length < 3) return null;
+  const size = median(tab.map((r) => r.size)) || 10;
+  const cols = columnRanges(tab, size);
+  if (!cols) return null;
+  const used = cols.map((col, ci) => tab.filter((r) => r.cells.some((c) => colOf(cols, c) === ci)).length / tab.length);
+  if (used.filter((u) => u >= 0.6).length < 2) return null;                     // at least two columns filled in most rows
+  const colLens = cols.map((col, ci) => median(tab.flatMap((r) => r.cells.filter((c) => colOf(cols, c) === ci).map((c) => c.text.length))));
+  // Two wide columns a few points apart are the page's text columns (even when a table sits in one of them);
+  // columns that are all running text are text columns too. Either way: read column by column, no table.
+  const wide = cols.length === 2 && cols.every((c) => c.x1 - c.x0 >= 120) && cols[1].x0 - cols[0].x1 <= 24;
+  const prose = tab.length >= 6 && (colLens.every((n) => n >= 24) || (wide && colLens.some((n) => n >= 24)));
+  if (!prose) {
+    const cells = tab.flatMap((r) => r.cells);
+    if (cells.filter((c) => c.text.length >= 2).length / cells.length < 0.6) return { rejected: true, end: start + run.length };   // figure labels, lone letters and digits
+    if (cells.length / (tab.length * cols.length) < 0.5) return { rejected: true, end: start + run.length };                     // mostly empty grid: a drawing, not a table
+  }
+  const rows = [];
+  for (const l of run) {
+    if (l.cells.length >= 2 || !rows.length) {
+      const r = Array.from({ length: cols.length }, () => '');
+      for (const c of l.cells) { const ci = colOf(cols, c); r[ci] = r[ci] ? `${r[ci]} ${c.text}` : c.text; }
+      rows.push(r);
+    } else {                                                                    // wrapped text continues the cell above
+      const c = l.cells[0], ci = colOf(cols, c);
+      const last = rows[rows.length - 1];
+      const cjk = /[\u3040-\u30ff\u3400-\u9fff]$/.test(last[ci]) || /^[\u3040-\u30ff\u3400-\u9fff]/.test(c.text);
+      last[ci] = last[ci] ? last[ci] + (cjk ? '' : ' ') + c.text : c.text;
+    }
+  }
+  return { end: start + run.length, rows, cols, y: run[0].y, size, prose, run };
+}
+
+export const tableToMarkdown = (rows) => {
+  const w = rows[0].length;
+  const line = (r) => `| ${r.map(cellMd).join(' | ')} |`;
+  return [line(rows[0]), `| ${Array(w).fill('---').join(' | ')} |`, ...rows.slice(1).map(line)].join('\n');
+};
+
+/**
+ * Split a page's lines into plain lines and tables: [{line} | {table: {rows, y, size}}].
+ * Text laid out in columns that the page-level gutter search missed comes back as plain lines, left column first.
+ * With detect=false nothing is turned into a table.
+ */
+export function groupTables(lines, detect = true) {
+  const out = [];
+  for (let i = 0; i < lines.length;) {
+    const t = detect && lines[i].cells?.length >= 2 ? tableAt(lines, i) : null;
+    if (!t || t.rejected) {
+      const to = t ? t.end : i + 1;
+      for (; i < to; i++) out.push({ line: lines[i] });                     // a rejected run is kept as plain lines (its tail must not be re-read as a smaller table)
+      continue;
+    }
+    if (t.prose) {
+      for (let ci = 0; ci < t.cols.length; ci++) {
+        for (const l of t.run) {
+          const cs = l.cells.filter((c) => colOf(t.cols, c) === ci);
+          if (cs.length) out.push({ line: { y: l.y, size: l.size, x0: cs[0].x0, cells: [], text: cs.map((c) => c.text).join(' ') } });
+        }
+      }
+    } else out.push({ table: t });
+    i = t.end;
+  }
+  return out;
+}
+
 /** Lines of all pages -> Markdown blocks with page numbers. Headings = clearly larger than the body font. */
-export function blocksFromPages(pages) {
+export function blocksFromPages(pages, { detectTables = true } = {}) {
   const sizes = pages.flatMap((p) => p.map((l) => Math.round(l.size * 2) / 2));
   const body = median(sizes) || 10;
   const heads = [...new Set(sizes.filter((s) => s >= body * 1.25))].sort((a, b) => b - a).slice(0, 3);
@@ -115,7 +250,15 @@ export function blocksFromPages(pages) {
   pages.forEach((lines, pi) => {
     let para = [], last = null;
     const flush = () => { if (para.length) { blocks.push({ text: para.join('\n'), page: pi + 1, md: para.join('\n'), kind: 'p' }); para = []; } };
-    for (const l of lines) {
+    for (const item of groupTables(lines, detectTables)) {
+      if (item.table) {
+        flush();
+        const t = item.table;
+        blocks.push({ text: t.rows.map((r) => r.join('\t')).join('\n'), page: pi + 1, md: tableToMarkdown(t.rows), kind: 't' });
+        last = null;
+        continue;
+      }
+      const l = item.line;
       const sz = Math.round(l.size * 2) / 2;
       const level = heads.indexOf(sz);
       const gap = last ? last.y - l.y : 0;
@@ -136,7 +279,7 @@ export function blocksFromPages(pages) {
   return blocks;
 }
 
-export async function convertPdf(bytes, { maxPages = 500 } = {}) {
+export async function convertPdf(bytes, { maxPages = 500, detectTables = true } = {}) {
   const task = pdfjs.getDocument({ data: new Uint8Array(bytes), cMapUrl: CMAP_URL, cMapPacked: true, standardFontDataUrl: FONT_URL,
     useSystemFonts: false, isEvalSupported: false, disableFontFace: true, verbosity: 0 });
   const doc = await task.promise;
@@ -154,10 +297,11 @@ export async function convertPdf(bytes, { maxPages = 500 } = {}) {
   let meta = {};
   try { const m = await doc.getMetadata(); meta = { title: m.info?.Title || null, author: m.info?.Author || null, created: m.info?.CreationDate || null }; } catch { /* optional */ }
   await doc.destroy();
-  const blocks = blocksFromPages(pages);
-  const empty = pages.filter((p) => !p.length).length;
-  if (empty === n) warnings.push('No text layer found: this looks like a scanned/image-only PDF. OCR is not supported.');
-  else if (empty) warnings.push(`${empty} page(s) have no text layer (images/scans); they are skipped.`);
+  const blocks = blocksFromPages(pages, { detectTables });
+  const emptyPages = pages.map((p, i) => (p.length ? 0 : i + 1)).filter(Boolean);
+  const empty = emptyPages.length;
+  if (empty === n) warnings.push('No text layer found on any page: this looks like a scanned/image-only PDF. OCR is not supported; run OCR first (for example ocrmypdf) and send the result.');
+  else if (empty) warnings.push(`${empty} page(s) have no text layer (images/scans) and are skipped: ${emptyPages.slice(0, 20).join(', ')}${empty > 20 ? ', ...' : ''}.`);
   const markdown = tidy(blocks.map((b) => b.md).join('\n\n'));
   const text = tidy(blocks.map((b) => b.text).join('\n\n'));
   const script = detectScript(text);
@@ -166,6 +310,6 @@ export async function convertPdf(bytes, { maxPages = 500 } = {}) {
   if (isCjk(script) && singles >= 10 && singles / allLines.length > 0.3) {
     warnings.push('Many single-character lines: this PDF probably uses vertical (tategaki) text, whose reading order is not reconstructed.');
   }
-  return { type: 'pdf', pages: total, convertedPages: n, ...meta, markdown, text, blocks: blocks.map((b) => ({ text: b.md, page: b.page })),
+  return { type: 'pdf', pages: total, convertedPages: n, ...meta, tables: blocks.filter((b) => b.kind === 't').length, scanned: empty === n, emptyPages: emptyPages.slice(0, 200), markdown, text, blocks: blocks.map((b) => ({ text: b.md, page: b.page })),
     pageTexts: pages.map((lines) => lines.map((l) => l.text).join('\n')), warnings };
 }

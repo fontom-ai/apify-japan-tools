@@ -87,3 +87,30 @@ export function chunkBlocks(blocks, size = 1500, overlap = 150) {
   flush();
   return chunks;
 }
+
+/**
+ * Bytes -> string for HTML / CSV / TXT / MD. Japanese sites and government CSV files are often Shift_JIS (Windows-31J)
+ * or EUC-JP, so UTF-8 is not assumed: BOM, then the declared charset (HTTP header or <meta>), then a strict UTF-8 try,
+ * then Shift_JIS. Returns {text, encoding}.
+ */
+export function decodeText(bytes, contentType = '') {
+  const b = Buffer.from(bytes);
+  const tryDecode = (label, fatal = false) => { try { return new TextDecoder(label, { fatal }).decode(b); } catch { return null; } };
+  if (b[0] === 0xef && b[1] === 0xbb && b[2] === 0xbf) return { text: b.subarray(3).toString('utf8'), encoding: 'utf-8' };
+  if (b[0] === 0xff && b[1] === 0xfe) return { text: tryDecode('utf-16le') ?? '', encoding: 'utf-16le' };
+  if (b[0] === 0xfe && b[1] === 0xff) return { text: tryDecode('utf-16be') ?? '', encoding: 'utf-16be' };
+  const head = b.subarray(0, 4096).toString('latin1');
+  const declared = (/charset\s*=\s*["']?([\w-]+)/i.exec(contentType)?.[1] ?? /<meta[^>]+charset\s*=\s*["']?([\w-]+)/i.exec(head)?.[1] ?? '').toLowerCase();
+  if (declared && !/^utf-?8$/.test(declared)) {
+    const label = /^(x-)?sjis$|^shift[-_]?jis$|^ms_?kanji$|^windows-31j$|^cp932$/.test(declared) ? 'shift_jis' : declared;
+    const t = tryDecode(label);
+    if (t !== null) return { text: t, encoding: label };
+  }
+  const utf8 = tryDecode('utf-8', true);
+  if (utf8 !== null) return { text: utf8, encoding: 'utf-8' };
+  const sjis = tryDecode('shift_jis');
+  if (sjis !== null && !sjis.includes('\ufffd')) return { text: sjis, encoding: 'shift_jis' };
+  const euc = tryDecode('euc-jp');
+  if (euc !== null && !euc.includes('\ufffd')) return { text: euc, encoding: 'euc-jp' };
+  return { text: b.toString('utf8'), encoding: 'utf-8 (lossy)' };
+}

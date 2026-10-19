@@ -103,3 +103,66 @@ test('Kangxi radicals / compatibility forms are folded to normal ideographs', ()
   assert.equal(fixCjkVariants('国⺠の祝⽇ ⽂⼦'), '国民の祝日 文子');
   assert.equal(fixCjkVariants('ＡＢＣ１２３'), 'ＡＢＣ１２３');   // only the broken forms, not full-width letters (that is `normalize`)
 });
+
+test('pdf: aligned text becomes a Markdown table (right-aligned numbers, header row, surrounding text kept)', async () => {
+  const { tablePdf } = await import('./fixtures.js');
+  const r = await convertBytes(await tablePdf());
+  assert.match(r.markdown, /\| Region \| Q1 \| Q2 \| Growth \|\n\| --- \| --- \| --- \| --- \|\n\| North \| 1,200 \| 1,350 \| 12\.5% \|/);
+  assert.match(r.markdown, /\| West \| 710 \| 905 \| 27\.5% \|/);
+  assert.match(r.markdown, /^# Quarterly Sales/m);
+  assert.match(r.markdown, /^The table below lists revenue by region\./m);
+  assert.match(r.markdown, /^Revenue grew in every region/m);
+  assert.equal(r.tables, 1);
+  assert.match(r.text, /North\t1,200\t1,350\t12\.5%/);
+});
+
+test('pdf: Japanese table keeps cells separate and does not add spaces inside Japanese words', { skip: !JA_FONT }, async () => {
+  const { japaneseTablePdf } = await import('./fixtures.js');
+  const r = await convertBytes(await japaneseTablePdf());
+  assert.match(r.markdown, /\| 支店 \| 売上（百万円） \| 前年比 \|/);
+  assert.match(r.markdown, /\| 名古屋 \| 540 \| -1\.5% \|/);
+  assert.match(r.markdown, /^以上のとおり、東京と福岡が好調でした。/m);
+  assert.equal(r.tables, 1);
+});
+
+test('pdf: wrapped cell text joins the row above instead of breaking the table', async () => {
+  const { wrappedCellTablePdf } = await import('./fixtures.js');
+  const r = await convertBytes(await wrappedCellTablePdf());
+  assert.match(r.markdown, /\| Beta \| A longer description that wraps that wraps onto a second line \| 25 \|/.source ? /\| Beta \| A longer description that wraps that wraps onto a second line \| 25 \|/ : /x/);
+  assert.equal(r.tables, 1);
+});
+
+test('pdf: ordinary paragraphs, bullets and two-column text are not mistaken for tables', async () => {
+  for (const make of [englishPdf, twoColumnPdf]) {
+    const r = await convertBytes(await make());
+    assert.equal(r.tables, 0);
+    assert.doesNotMatch(r.markdown, /\| --- \|/);
+  }
+});
+
+test('Shift_JIS and EUC-JP files are decoded (Japanese CSV/HTML are often not UTF-8)', async () => {
+  const sjisCsv = Buffer.from([0x93, 0xFA, 0x96, 0x7B, 0x8C, 0xEA, 0x2C, 0x89, 0x63, 0x8B, 0xC6, 0x0A, 0x31, 0x2C, 0x32, 0x0A]);   // 日本語,営業 / 1,2
+  const c = await convertBytes(sjisCsv, { name: 'x.csv' });
+  assert.match(c.markdown, /\| 日本語 \| 営業 \|/); assert.equal(c.encoding, 'shift_jis');
+  const eucTxt = Buffer.from([0xC6, 0xFC, 0xCB, 0xDC, 0xB8, 0xEC, 0x0A]);                      // 日本語
+  const t = await convertBytes(eucTxt, { name: 'x.txt', contentType: 'text/plain; charset=EUC-JP' });
+  assert.equal(t.markdown, '日本語'); assert.equal(t.encoding, 'euc-jp');
+  const head = Buffer.from('<html><head><meta charset="Shift_JIS"><title>');
+  const html = Buffer.concat([head, Buffer.from([0x93, 0xFA, 0x96, 0x7B]), Buffer.from('</title></head><body><main><p>'), Buffer.from([0x8C, 0xEA]), Buffer.from('</p></main></body></html>')]);
+  const h = await convertBytes(html, { name: 'a.html' });
+  assert.equal(h.title, '日本'); assert.match(h.markdown, /語/); assert.equal(h.encoding, 'shift_jis');
+  const utf8 = await convertBytes(Buffer.from('日本語,営業\n1,2\n'), { name: 'u.csv' });
+  assert.match(utf8.markdown, /日本語/); assert.equal(utf8.encoding, undefined);
+});
+
+test('detectTables:false keeps table rows as plain text', async () => {
+  const { tablePdf } = await import('./fixtures.js');
+  const r = await convertBytes(await tablePdf(), { detectTables: false });
+  assert.equal(r.tables, 0); assert.doesNotMatch(r.markdown, /\| --- \|/); assert.match(r.markdown, /North 1,200 1,350 12\.5%/);
+});
+
+test('scanned PDF is flagged with the empty page numbers', async () => {
+  const { makePdf } = await import('./fixtures.js');
+  const r = await convertBytes(await makePdf((d) => { d.rect(50, 50, 100, 100).fill('#000'); d.addPage(); d.rect(60, 60, 20, 20).fill('#000'); }));
+  assert.equal(r.scanned, true); assert.deepEqual(r.emptyPages, [1, 2]); assert.match(r.warnings[0], /scanned|image-only/);
+});

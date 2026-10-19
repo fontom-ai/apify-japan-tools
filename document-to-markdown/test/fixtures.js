@@ -76,3 +76,44 @@ export const twoColumnPdf = () => makePdf((d) => {
   d.text(left, 50, y, { width: 230 });
   d.text(right, 320, y, { width: 230 });
 });
+
+/** Draw a grid of text cells at fixed x positions (no ruling lines: the table is only visible as aligned text). */
+export function drawTable(d, rows, { x = 50, y, widths, aligns = [], gap = 16, size = 10, rowH = 16 } = {}) {
+  let yy = y ?? d.y;
+  d.fontSize(size);
+  for (const row of rows) {
+    let xx = x;
+    row.forEach((cell, i) => { d.text(String(cell), xx, yy, { width: widths[i], align: aligns[i] ?? 'left', lineBreak: false }); xx += widths[i] + gap; });
+    yy += rowH;
+  }
+  d.y = yy;
+  return yy;
+}
+
+export const tablePdf = () => makePdf((d) => {
+  d.fontSize(18).text('Quarterly Sales', 50, 50);
+  d.fontSize(11).text('The table below lists revenue by region. Figures are in thousands of dollars.', 50, 80, { width: 450 });
+  drawTable(d, [['Region', 'Q1', 'Q2', 'Growth'], ['North', '1,200', '1,350', '12.5%'], ['South', '980', '1,010', '3.1%'], ['East', '1,540', '1,610', '4.5%'], ['West', '710', '905', '27.5%']],
+    { y: 120, widths: [110, 70, 70, 70], aligns: ['left', 'right', 'right', 'right'] });
+  d.fontSize(11).text('Revenue grew in every region, led by the West. This paragraph follows the table and should stay ordinary text.', 50, 240, { width: 450 });
+});
+
+export const japaneseTablePdf = () => makePdf((d) => {
+  d.font(JA_FONT);
+  d.fontSize(16).text('支店別売上', 50, 50);
+  drawTable(d, [['支店', '売上（百万円）', '前年比'], ['東京', '1,200', '+8.0%'], ['大阪', '860', '+3.2%'], ['名古屋', '540', '-1.5%'], ['福岡', '410', '+12.0%']],
+    { y: 90, widths: [90, 120, 80], aligns: ['left', 'right', 'right'], size: 11, rowH: 18 });
+  d.fontSize(11).text('以上のとおり、東京と福岡が好調でした。', 50, 220, { width: 400 });
+});
+
+export const wrappedCellTablePdf = () => makePdf((d) => {
+  d.fontSize(10);
+  const rows = [['Item', 'Description', 'Price'], ['Alpha', 'A short note', '10'], ['Beta', 'A longer description that wraps', '25'], ['Gamma', 'Another note', '40']];
+  rows.forEach((r, i) => {
+    const y = 60 + i * 22;
+    d.text(r[0], 50, y, { width: 80, lineBreak: false });
+    d.text(r[1], 150, y, { width: 150, lineBreak: false });
+    d.text(r[2], 330, y, { width: 40, align: 'right', lineBreak: false });
+  });
+  d.text('that wraps onto a second line', 150, 60 + 2 * 22 + 11, { width: 150, lineBreak: false });   // continuation of the Beta row
+});
